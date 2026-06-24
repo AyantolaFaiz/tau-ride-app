@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAU Ride - Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; } .view { display: none; } .view.active { display: block; } </style>
+</head>
+<body class="min-h-screen text-gray-900 flex flex-col">
+
+    <!-- Responsive Navbar -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="tau-logo.png" alt="TAU Logo" class="w-10 h-10 object-contain bg-white rounded-full shadow-sm p-0.5 border border-gray-100">
+                <div><h1 class="font-extrabold text-blue-900 leading-tight">TAU ADMIN</h1><p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Control Center</p></div>
+            </div>
+            <a href="index.html" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-bold text-sm hover:bg-red-100 transition">Logout</a>
+        </div>
+        <!-- Desktop & Mobile Tabs -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex overflow-x-auto gap-2 py-2 hide-scrollbar">
+            <button onclick="switchView('home')" id="nav-home" class="nav-item whitespace-nowrap px-4 py-2 rounded-lg font-bold text-sm bg-blue-600 text-white transition">Monitor</button>
+            <button onclick="switchView('database')" id="nav-database" class="nav-item whitespace-nowrap px-4 py-2 rounded-lg font-bold text-sm text-gray-600 hover:bg-gray-100 transition">Database</button>
+            <button onclick="switchView('routes')" id="nav-routes" class="nav-item whitespace-nowrap px-4 py-2 rounded-lg font-bold text-sm text-gray-600 hover:bg-gray-100 transition">Routes</button>
+            <button onclick="switchView('complaints')" id="nav-complaints" class="nav-item whitespace-nowrap px-4 py-2 rounded-lg font-bold text-sm text-gray-600 hover:bg-gray-100 transition">Complaints</button>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- ================= MONITOR VIEW ================= -->
+        <div id="view-home" class="view active">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><h4 class="text-gray-400 text-xs font-bold uppercase tracking-widest">Server Status</h4><p class="text-green-500 font-extrabold text-2xl mt-2 flex items-center gap-2"><span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span> Online</p></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><h4 class="text-gray-400 text-xs font-bold uppercase tracking-widest">Active Rides</h4><p id="activeRideCount" class="text-blue-600 font-extrabold text-3xl mt-2">0</p></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"><h4 class="text-gray-400 text-xs font-bold uppercase tracking-widest">Danger Zone</h4><button onclick="socket.emit('resetSystem')" class="mt-2 w-full py-2 bg-red-50 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100">Global Reset</button></div>
+            </div>
+
+            <h3 class="text-xl font-extrabold text-gray-900 mb-4">Live System Feed</h3>
+            <div id="adminRideContainer" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 min-h-[200px]"></div>
+        </div>
+
+        <!-- ================= DATABASE VIEW (Approve/Delete Drivers) ================= -->
+        <div id="view-database" class="view">
+            <h3 class="text-xl font-extrabold text-gray-900 mb-4">User & Driver Database</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="databaseList"></div>
+        </div>
+
+        <!-- ================= ROUTES VIEW ================= -->
+        <div id="view-routes" class="view">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 h-fit">
+                    <h3 class="font-bold text-gray-900 mb-4">Add New Stop</h3>
+                    <div class="space-y-4">
+                        <select id="campusSelect" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none font-bold text-sm"><option value="East Campus">East Campus</option><option value="West Campus">West Campus</option></select>
+                        <input type="text" id="newStopName" placeholder="e.g. New Library" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none font-bold text-sm">
+                        <button onclick="addNewRoute()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold">Add Route</button>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2" id="routesList"></div>
+            </div>
+        </div>
+
+        <!-- ================= COMPLAINTS VIEW ================= -->
+        <div id="view-complaints" class="view">
+            <h3 class="text-xl font-extrabold text-gray-900 mb-4">Student Complaints</h3>
+            <div id="complaintsList" class="space-y-4"></div>
+        </div>
+
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-' + viewName).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => { n.classList.remove('bg-blue-600', 'text-white'); n.classList.add('text-gray-600', 'hover:bg-gray-100'); });
+            const activeNav = document.getElementById('nav-' + viewName);
+            activeNav.classList.remove('text-gray-600', 'hover:bg-gray-100'); activeNav.classList.add('bg-blue-600', 'text-white');
+        }
+
+        // NEW: Proper Approve Function
+        function approveUser(id) {
+            socket.emit('approveDriver', id);
+            alert("Driver has been approved!");
+        }
+
+        socket.on('systemUpdate', (data) => {
+            // 1. UPDATE MONITOR FEED
+            const container = document.getElementById('adminRideContainer');
+            if (data.ride) {
+                document.getElementById('activeRideCount').innerText = "1";
+                const isAccepted = data.ride.status === 'accepted';
+                container.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-extrabold text-xl text-gray-900">${data.ride.passenger} <span class="text-sm font-medium text-gray-500 block">Driver ID: ${data.ride.driverId}</span></h4>
+                        <div class="flex gap-2">
+                            <span class="font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider text-xs ${isAccepted ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${isAccepted ? 'En Route' : 'Pending'}</span>
+                            <button onclick="socket.emit('adminCancelRide')" class="bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-bold text-xs hover:bg-red-200">Force Cancel</button>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col md:flex-row gap-4 justify-between">
+                        <div><p class="text-xs text-gray-500 font-bold uppercase">Pickup</p><p class="font-bold">${data.ride.pickup}</p></div>
+                        <div class="hidden md:block w-px bg-gray-300"></div>
+                        <div><p class="text-xs text-gray-500 font-bold uppercase">Drop-off</p><p class="font-bold">${data.ride.dropoff}</p></div>
+                    </div>
+                `;
+            } else {
+                document.getElementById('activeRideCount').innerText = "0";
+                container.innerHTML = `<div class="text-center py-10 text-gray-400 font-bold">No active rides right now.</div>`;
+            }
+
+            // 2. UPDATE DATABASE (Approval & Deletion)
+            if(data.users) {
+                const dbList = document.getElementById('databaseList');
+                if(data.users.length === 0) dbList.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400 font-bold">No users registered.</div>`;
+                else {
+                    dbList.innerHTML = data.users.map(u => `
+                        <div class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 ${u.role === 'driver' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'} rounded-full flex items-center justify-center font-bold text-lg">${u.name.charAt(0)}</div>
+                                <div>
+                                    <p class="font-bold text-gray-900">${u.name}</p>
+                                    <p class="text-xs text-gray-500 font-bold">${u.id} • <span class="uppercase ${u.role === 'driver' ? 'text-blue-500' : 'text-green-500'}">${u.role}</span></p>
+                                    ${u.role === 'driver' ? `<p class="text-[10px] text-gray-500 mt-1 uppercase">${u.vehicleModel} • ${u.plateNumber}</p>` : ''}
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                ${(u.role === 'driver' && !u.approved) ? `<button onclick="approveUser('${u.id}')" class="bg-green-500 text-white px-3 py-1 rounded text-xs font-bold hover:bg-green-600">Approve</button>` : ''}
+                                ${(u.role === 'driver' && u.approved) ? `<span class="bg-green-100 text-green-700 px-3 py-1 rounded text-[10px] font-bold text-center">Approved</span>` : ''}
+                                <button onclick="deleteUser('${u.id}')" class="bg-red-50 text-red-500 px-3 py-1 rounded text-xs font-bold hover:bg-red-100">Delete</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // 3. UPDATE ROUTES
+            if(data.routes) {
+                let html = '';
+                for (let campus in data.routes) {
+                    html += `<h4 class="font-bold text-gray-900 mt-2 mb-3 uppercase text-sm">${campus}</h4><div class="flex flex-wrap gap-2 mb-6">`;
+                    data.routes[campus].forEach(stop => {
+                        html += `<span class="bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2">${stop} <button onclick="socket.emit('removeRoute', {campus: '${campus}', stop: '${stop}'})" class="text-red-500 hover:text-red-700 font-bold">×</button></span>`;
+                    });
+                    html += `</div>`;
+                }
+                document.getElementById('routesList').innerHTML = html;
+            }
+
+            // 4. UPDATE COMPLAINTS
+            if(data.complaints) {
+                const compList = document.getElementById('complaintsList');
+                if(data.complaints.length === 0) compList.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center text-gray-400 font-bold">No complaints filed.</div>`;
+                else {
+                    compList.innerHTML = data.complaints.map(c => `
+                        <div class="bg-white border-l-4 border-red-500 p-5 rounded-2xl shadow-sm">
+                            <div class="flex justify-between items-start mb-2">
+                                <p class="font-bold text-gray-900">From: ${c.studentName} <span class="text-gray-400 font-normal text-sm">(${c.studentId})</span></p>
+                                <span class="text-[10px] bg-gray-100 px-2 py-1 rounded font-bold uppercase text-gray-500">${new Date(c.time).toLocaleDateString()}</span>
+                            </div>
+                            <p class="text-sm font-semibold text-red-600 mb-2">Against Driver ID: ${c.driverId}</p>
+                            <p class="text-gray-700 bg-gray-50 p-3 rounded-lg text-sm">${c.text}</p>
+                        </div>
+                    `).join('');
+                }
+            }
+        });
+
+        function addNewRoute() {
+            const campus = document.getElementById('campusSelect').value;
+            const stop = document.getElementById('newStopName').value;
+            if(!stop) return alert("Please type a stop name.");
+            socket.emit('addRoute', { campus: campus, newStop: stop });
+            document.getElementById('newStopName').value = '';
+        }
+
+        function deleteUser(id) {
+            if(confirm("Are you sure you want to permanently delete this user? They will be logged out instantly.")) {
+                socket.emit('deleteDriver', id); // This deletes the user from the database
+            }
+        }
+    </script>
+</body>
+</html>

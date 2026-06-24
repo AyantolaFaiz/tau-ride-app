@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAU RIDE - Web Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; } </style>
+</head>
+<body class="min-h-screen flex flex-col text-gray-900">
+
+    <!-- Responsive Top Navbar -->
+    <header class="fixed top-0 w-full z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <!-- NEW LOGO INSERTED HERE -->
+                <img src="tau-logo.png" alt="TAU Logo" class="w-12 h-12 object-contain bg-white rounded-full shadow-sm p-0.5">
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-tight text-blue-900">TAU RIDE</h1>
+                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Campus Transport</p>
+                </div>
+            </div>
+            <div class="hidden md:flex gap-4">
+                <button onclick="openAuthModal('login')" class="px-6 py-2 text-blue-600 font-bold hover:bg-blue-50 rounded-xl transition">Login</button>
+                <button onclick="openAuthModal('signup')" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition">Sign Up</button>
+            </div>
+            <button class="md:hidden p-2 text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+        </div>
+    </header>
+
+    <!-- Full Screen Hero Section -->
+    <main class="flex-grow pt-20 flex flex-col relative">
+        <div class="relative w-full h-[80vh] flex items-center justify-center">
+            <img src="tau-gate.png" alt="TAU Gate" class="absolute inset-0 w-full h-full object-cover object-center" />
+            <div class="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/60 to-gray-900/90"></div>
+            
+            <div class="relative z-10 text-center px-4 max-w-3xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 mb-6 backdrop-blur-md">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    <span class="text-xs text-white font-bold tracking-wide uppercase">Safe & Reliable</span>
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold leading-tight text-white mb-6">Your Ride,<br/>Your Campus.</h1>
+                <p class="text-lg text-gray-200 font-medium mb-10 max-w-xl mx-auto">Smart transportation for students and staff of Thomas Adewumi University.</p>
+                
+                <div class="flex flex-col md:flex-row gap-4 justify-center md:hidden">
+                    <button onclick="openAuthModal('signup')" class="w-full md:w-auto px-8 py-4 rounded-xl bg-blue-600 text-white font-bold text-lg shadow-lg hover:bg-blue-700 transition">Get Started</button>
+                    <button onclick="openAuthModal('login')" class="w-full md:w-auto px-8 py-4 rounded-xl bg-white/10 backdrop-blur border border-white/20 text-white font-bold text-lg hover:bg-white/20 transition">Login to Account</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Login Footer Link -->
+        <div class="bg-gray-900 py-6 text-center">
+            <button onclick="openAdminLogin()" class="text-xs font-bold text-gray-500 hover:text-white transition">Secret Admin Login</button>
+        </div>
+    </main>
+
+    <!-- Centered Auth Modal (Responsive) -->
+    <div id="authModal" class="fixed inset-0 z-50 bg-gray-900/70 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            
+            <div class="px-8 pt-8 pb-4 border-b border-gray-100 bg-gray-50/50">
+                <img src="tau-logo.png" alt="TAU Logo" class="w-12 h-12 mx-auto mb-2 drop-shadow-md">
+                <h2 class="text-2xl font-extrabold text-gray-900 text-center" id="authTitle">Welcome</h2>
+                <p class="text-gray-500 text-sm mt-1 font-medium text-center" id="authSubtitle">Join TAU Ride</p>
+            </div>
+
+            <div class="px-8 py-6 max-h-[60vh] overflow-y-auto">
+                <div id="tabsContainer" class="flex bg-gray-100 p-1 rounded-xl mb-6">
+                    <button id="loginTab" onclick="switchTab('login')" class="flex-1 py-2.5 text-sm font-bold rounded-lg text-gray-500 transition-all">Login</button>
+                    <button id="signupTab" onclick="switchTab('signup')" class="flex-1 py-2.5 text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600 transition-all">Sign Up</button>
+                </div>
+
+                <form id="authForm" class="space-y-4">
+                    <div id="nameField">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Full Name</label>
+                        <input type="text" id="fullName" placeholder="Ayantola Faiz" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none font-bold text-sm text-gray-800 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label id="userIdLabel" class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">TAU Email Address</label>
+                        <input type="text" id="userId" placeholder="student@tau.edu.ng" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none font-bold text-sm text-gray-800 focus:border-blue-500">
+                    </div>
+                    
+                    <div id="roleField">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">I am a...</label>
+                        <select id="role" onchange="checkDriverFields()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none font-bold text-sm text-gray-800 appearance-none focus:border-blue-500">
+                            <option value="student">Student (Rider)</option>
+                            <option value="driver">Campus Driver</option>
+                        </select>
+                    </div>
+                    
+                    <div id="driverFields" class="hidden space-y-4 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                        <div><label class="block text-[10px] font-bold text-blue-600 uppercase mb-1">Vehicle Model</label><input type="text" id="vehicleModel" placeholder="e.g. Toyota Corolla" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 outline-none font-bold text-sm text-gray-800"></div>
+                        <div><label class="block text-[10px] font-bold text-blue-600 uppercase mb-1">Plate Number</label><input type="text" id="plateNumber" placeholder="TAU-123" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 outline-none font-bold text-sm text-gray-800 uppercase"></div>
+                        <p class="text-xs text-blue-600 font-semibold bg-blue-100 p-2 rounded text-center">Driver accounts require Admin approval.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Password</label>
+                        <input type="password" id="password" placeholder="••••••••" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none font-bold text-sm text-gray-800 focus:border-blue-500">
+                    </div>
+
+                    <button type="button" onclick="submitForm()" id="actionBtn" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-[15px] shadow-lg hover:bg-blue-700 active:scale-95 transition-all mt-4">Create Account</button>
+                    <p id="errorMsg" class="text-red-500 text-xs mt-3 text-center hidden font-bold bg-red-50 p-2 rounded border border-red-100"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentMode = 'signup'; 
+
+        function openAuthModal(type) {
+            document.getElementById('authModal').classList.remove('hidden'); document.getElementById('authModal').classList.add('flex');
+            switchTab(type);
+        }
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden'); document.getElementById('authModal').classList.remove('flex');
+        }
+
+        function openAdminLogin() { openAuthModal('admin'); }
+
+        function switchTab(type) {
+            currentMode = type;
+            const loginTab = document.getElementById('loginTab'); const signupTab = document.getElementById('signupTab');
+            const errorMsg = document.getElementById('errorMsg'); errorMsg.classList.add('hidden');
+            const userIdInput = document.getElementById('userId'); const userIdLabel = document.getElementById('userIdLabel');
+
+            if(type === 'admin') {
+                document.getElementById('tabsContainer').classList.add('hidden');
+                document.getElementById('nameField').classList.add('hidden');
+                document.getElementById('roleField').classList.add('hidden');
+                document.getElementById('driverFields').classList.add('hidden');
+                
+                userIdLabel.innerText = "Admin ID"; userIdInput.placeholder = "e.g. admin";
+                document.getElementById('actionBtn').innerText = "Login as Admin";
+                document.getElementById('authTitle').innerText = "Admin Portal"; document.getElementById('authSubtitle').innerText = "Secret Access";
+            } else if(type === 'signup') {
+                document.getElementById('tabsContainer').classList.remove('hidden');
+                signupTab.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600 transition-all";
+                loginTab.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 transition-all";
+                document.getElementById('nameField').classList.remove('hidden');
+                document.getElementById('roleField').classList.remove('hidden');
+                
+                userIdLabel.innerText = "TAU Email Address"; userIdInput.placeholder = "student@tau.edu.ng";
+                document.getElementById('actionBtn').innerText = "Create Account";
+                document.getElementById('authTitle').innerText = "Join TAU Ride"; document.getElementById('authSubtitle').innerText = "Account required to proceed";
+                checkDriverFields();
+            } else if (type === 'login') {
+                document.getElementById('tabsContainer').classList.remove('hidden');
+                loginTab.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600 transition-all";
+                signupTab.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 transition-all";
+                document.getElementById('nameField').classList.add('hidden');
+                document.getElementById('roleField').classList.remove('hidden');
+                document.getElementById('driverFields').classList.add('hidden');
+                
+                userIdLabel.innerText = "TAU Email Address"; userIdInput.placeholder = "student@tau.edu.ng";
+                document.getElementById('actionBtn').innerText = "Login";
+                document.getElementById('authTitle').innerText = "Welcome Back"; document.getElementById('authSubtitle').innerText = "Login to your account";
+            }
+        }
+
+        function checkDriverFields() {
+            if(document.getElementById('role').value === 'driver' && currentMode === 'signup') {
+                document.getElementById('driverFields').classList.remove('hidden');
+            } else {
+                document.getElementById('driverFields').classList.add('hidden');
+            }
+        }
+
+        function submitForm() {
+            const role = currentMode === 'admin' ? 'admin' : document.getElementById('role').value;
+            const id = document.getElementById('userId').value.trim();
+            const pass = document.getElementById('password').value;
+            const name = document.getElementById('fullName').value;
+            const model = document.getElementById('vehicleModel').value;
+            const plate = document.getElementById('plateNumber').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            if(!id || !pass || (currentMode === 'signup' && !name)) {
+                errorMsg.innerText = "Please fill all required fields."; errorMsg.classList.remove('hidden'); return;
+            }
+
+            if(currentMode === 'signup') {
+                if(role === 'driver' && (!model || !plate)) {
+                    errorMsg.innerText = "Drivers must provide vehicle details."; errorMsg.classList.remove('hidden'); return;
+                }
+                socket.emit('registerUser', { id: id, password: pass, name: name, role: role, vehicleModel: model, plateNumber: plate }, (res) => {
+                    if(res.success) {
+                        localStorage.setItem('campusRideUser', JSON.stringify(res.user));
+                        if(role === 'driver') alert("Registration successful! An admin must approve your account before you can log in.");
+                        else window.location.href = role + '.html';
+                    } else {
+                        errorMsg.innerText = res.message; errorMsg.classList.remove('hidden');
+                    }
+                });
+            } else {
+                socket.emit('loginUser', { id: id, password: pass, role: role }, (res) => {
+                    if(res.success) {
+                        localStorage.setItem('campusRideUser', JSON.stringify(res.user));
+                        window.location.href = role + '.html';
+                    } else {
+                        errorMsg.innerText = res.message; errorMsg.classList.remove('hidden');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
