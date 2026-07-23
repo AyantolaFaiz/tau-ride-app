@@ -8,11 +8,10 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
-// --- SYSTEM DATABASE (Memory) ---
 let registeredUsers = []; 
 let onlineDrivers = {};
 let currentRide = null; 
-let complaints = []; // New Complaints Database
+let complaints = []; 
 let campusRoutes = {
     "East Campus": ["East Faculty", "East Cafeteria", "East Field", "Boys Hostel", "Girls Hostel", "East Gate"],
     "West Campus": ["Management Faculty", "Law Faculty", "West Cafeteria", "West Field", "West Gate"]
@@ -26,14 +25,11 @@ io.on('connection', (socket) => {
 
     sendUpdate();
 
-    // --- 1. AUTHENTICATION & APPROVAL ---
     socket.on('registerUser', (userData, callback) => {
         if (!userData.id.toLowerCase().endsWith('@tau.edu.ng')) return callback({ success: false, message: 'Only @tau.edu.ng emails allowed.' });
         if(registeredUsers.find(u => u.id === userData.id)) return callback({ success: false, message: 'Email already registered.' });
 
-        // Drivers must be approved by Admin. Students are auto-approved.
         userData.approved = userData.role === 'driver' ? false : true; 
-
         registeredUsers.push(userData); 
         callback({ success: true, user: userData });
         sendUpdate();
@@ -48,7 +44,6 @@ io.on('connection', (socket) => {
 
         const user = registeredUsers.find(u => u.id === creds.id && u.password === creds.password && u.role === creds.role);
         if(user) {
-            // Block unapproved drivers
             if(user.role === 'driver' && !user.approved) return callback({ success: false, message: 'Your account is pending Admin approval.' });
             callback({ success: true, user: user });
         } else {
@@ -56,7 +51,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- 2. ADMIN ACCOUNT MANAGEMENT ---
     socket.on('approveDriver', (driverId) => {
         let d = registeredUsers.find(u => u.id === driverId);
         if(d) d.approved = true;
@@ -64,33 +58,52 @@ io.on('connection', (socket) => {
     });
 
     socket.on('deleteDriver', (driverId) => {
-        // Remove from DB
         registeredUsers = registeredUsers.filter(u => u.id !== driverId);
-        // Kick offline if they are online
         let onlineKey = Object.keys(onlineDrivers).find(k => onlineDrivers[k].id === driverId);
         if(onlineKey) delete onlineDrivers[onlineKey];
         sendUpdate();
     });
 
-    // --- 3. RIDES & COMPLAINTS ---
     socket.on('bookRide', (rideData) => {
         currentRide = { ...rideData, status: 'pending' };
         sendUpdate();
     });
 
     socket.on('acceptRide', () => {
-        if (currentRide) currentRide.status = 'accepted';
+        if (currentRide) {
+            currentRide.status = 'accepted'; // Driver is on the way to pickup
+            currentRide.etaToPickup = Math.floor(Math.random() * 4) + 2; 
+            currentRide.etaToDestination = Math.floor(Math.random() * 8) + 5; 
+            currentRide.geofenceSafe = true; 
+        }
         sendUpdate();
     });
 
-    // Driver Declines Ride
+    // NEW: START RIDE FEATURE
+    socket.on('startRide', () => {
+        if (currentRide) {
+            currentRide.status = 'in_progress'; // Driver picked up student
+        }
+        sendUpdate();
+    });
+
+    socket.on('cancelRideByStudent', () => {
+        currentRide = null;
+        sendUpdate();
+        io.emit('rideCancelled', 'The rider cancelled the ride due to an emergency or delay.');
+    });
+
+    socket.on('triggerGeofenceBreach', () => {
+        if (currentRide) currentRide.geofenceSafe = false;
+        sendUpdate();
+    });
+
     socket.on('declineRide', () => {
         currentRide = null;
         sendUpdate();
         io.emit('rideCancelled', 'The driver declined your request. Please choose another driver.');
     });
 
-    // Admin Cancels Ride
     socket.on('adminCancelRide', () => {
         currentRide = null;
         sendUpdate();
@@ -102,13 +115,11 @@ io.on('connection', (socket) => {
         sendUpdate();
     });
 
-    // Submit Complaint
     socket.on('submitComplaint', (data) => {
         complaints.push(data);
         sendUpdate();
     });
 
-    // --- 4. ROUTES & DRIVER STATUS ---
     socket.on('addRoute', (data) => {
         if(campusRoutes[data.campus]) campusRoutes[data.campus].push(data.newStop);
         sendUpdate();
@@ -130,4 +141,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => console.log('✅ Master Server running on http://localhost:3000'));
+server.listen(3000, () => console.log('✅ Advanced GPS Server running on http://localhost:3000'));

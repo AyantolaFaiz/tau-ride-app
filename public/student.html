@@ -6,7 +6,12 @@
     <title>TAU Ride - Student Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; } </style>
+    <style> 
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; } 
+        .map-bg { background-image: url('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop'); background-size: cover; background-position: center; }
+        @keyframes drive { 0% { top: 10%; left: 10%; } 100% { top: 75%; left: 75%; } }
+        .car-marker { animation: drive 10s infinite alternate ease-in-out; }
+    </style>
 </head>
 <body class="min-h-screen text-gray-900 flex flex-col">
 
@@ -25,11 +30,9 @@
     </header>
 
     <main class="flex-grow max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        
         <h2 class="text-3xl font-extrabold mb-8 text-gray-900" id="greeting">Hello!</h2>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Booking Column -->
             <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-200 h-fit" id="bookingSection">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold">Book a Ride</h3>
@@ -38,45 +41,40 @@
                         <input type="checkbox" id="scheduleToggle" onchange="toggleSchedule()" class="rounded text-blue-600">
                     </label>
                 </div>
-
                 <form class="space-y-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Pickup Location</label>
-                        <select id="pickup" class="w-full bg-gray-50 border border-gray-200 text-gray-800 font-semibold rounded-xl px-4 py-3 outline-none focus:border-blue-500"><option value="" disabled selected>Loading stops...</option></select>
+                        <select id="pickup" class="w-full bg-gray-50 border border-gray-200 font-semibold rounded-xl px-4 py-3 outline-none"><option value="" disabled selected>Loading stops...</option></select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Drop-off Location</label>
-                        <select id="dropoff" class="w-full bg-gray-50 border border-gray-200 text-gray-800 font-semibold rounded-xl px-4 py-3 outline-none focus:border-blue-500"><option value="" disabled selected>Loading stops...</option></select>
+                        <select id="dropoff" class="w-full bg-gray-50 border border-gray-200 font-semibold rounded-xl px-4 py-3 outline-none"><option value="" disabled selected>Loading stops...</option></select>
                     </div>
-
                     <div id="scheduleTimeContainer" class="hidden">
                         <label class="block text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Select Time</label>
                         <input type="datetime-local" id="scheduleTime" class="w-full bg-blue-50 border border-blue-200 text-blue-700 font-bold rounded-xl px-4 py-3 outline-none">
                     </div>
-
                     <button type="button" onclick="showDrivers()" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition">Find Available Drivers</button>
                 </form>
             </div>
 
-            <!-- Active Ride & Drivers Column -->
-            <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-200 flex flex-col items-center justify-center min-h-[400px]" id="statusSection">
+            <!-- Active Ride Section -->
+            <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-200 flex flex-col justify-center min-h-[400px]" id="statusSection">
                 <div class="text-center text-gray-400" id="defaultStatus">
                     <svg class="w-16 h-16 mx-auto mb-4 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
                     <p class="font-bold">Select your locations to see drivers.</p>
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- Complaint Modal -->
     <div id="complaintModal" class="fixed inset-0 z-50 bg-gray-900/70 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2rem] p-8 shadow-2xl relative">
             <button onclick="closeComplaint()" class="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <h2 class="text-2xl font-extrabold text-red-600 mb-2">Report Issue</h2>
             <p class="text-sm text-gray-600 mb-6 font-medium">Please detail your complaint below. Admin will review this immediately.</p>
             <input type="hidden" id="complaintDriverId">
-            <textarea id="complaintText" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 outline-none focus:border-red-500 font-medium text-sm mb-4" placeholder="What went wrong?"></textarea>
+            <textarea id="complaintText" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 outline-none font-medium text-sm mb-4" placeholder="What went wrong?"></textarea>
             <button onclick="submitComplaint()" class="w-full bg-red-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-red-700 transition">Submit Complaint</button>
         </div>
     </div>
@@ -86,35 +84,25 @@
         const socket = io();
         let userData = JSON.parse(localStorage.getItem('campusRideUser'));
         if(!userData) window.location.href = 'index.html';
-
         let availableDrivers = [];
-        let currentDriverId = null; // Stored to report driver
+        let currentDriverId = null; 
 
         document.getElementById('greeting').innerText = `Hello, ${userData.name.split(' ')[0]}!`;
         document.getElementById('navName').innerText = userData.name;
         document.getElementById('navAvatar').innerText = userData.name.charAt(0);
 
-        function toggleSchedule() {
-            document.getElementById('scheduleTimeContainer').style.display = document.getElementById('scheduleToggle').checked ? 'block' : 'none';
-        }
+        function toggleSchedule() { document.getElementById('scheduleTimeContainer').style.display = document.getElementById('scheduleToggle').checked ? 'block' : 'none'; }
 
-        // Listen for Ride Cancellations (By driver or admin)
         socket.on('rideCancelled', (msg) => {
             alert(msg);
             document.getElementById('bookingSection').classList.remove('hidden');
-            document.getElementById('statusSection').innerHTML = `<div class="text-center text-gray-400"><p class="font-bold">Ride was cancelled. Please book again.</p></div>`;
+            document.getElementById('statusSection').innerHTML = `<div class="text-center text-gray-400"><svg class="w-16 h-16 mx-auto mb-4 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg><p class="font-bold">Ride was cancelled. Please book again.</p></div>`;
         });
 
         socket.on('systemUpdate', (data) => {
-            // NEW: Instantly log out if Admin deleted this account
             if(data.users) {
                 const myDbProfile = data.users.find(u => u.id === userData.id);
-                if(!myDbProfile) {
-                    alert("Your account has been deleted by the Administrator.");
-                    localStorage.removeItem('campusRideUser');
-                    window.location.href = 'index.html';
-                    return;
-                }
+                if(!myDbProfile) { alert("Your account has been deleted."); localStorage.removeItem('campusRideUser'); window.location.href = 'index.html'; return; }
             }
 
             if (data.routes) {
@@ -128,35 +116,73 @@
                 p.innerHTML = opts; d.innerHTML = opts;
             }
 
-            availableDrivers = data.drivers ? data.drivers.filter(drv => drv.approved) : []; // ONLY SHOW APPROVED DRIVERS
+            availableDrivers = data.drivers ? data.drivers.filter(drv => drv.approved) : []; 
 
             const statusSec = document.getElementById('statusSection');
             if (data.ride && data.ride.passengerId === userData.id) {
                 document.getElementById('bookingSection').classList.add('hidden');
-                currentDriverId = data.ride.driverId; // Save for complaints
+                currentDriverId = data.ride.driverId; 
 
                 if(data.ride.status === 'pending') {
                     statusSec.innerHTML = `
-                        <div class="text-center">
+                        <div class="text-center w-full">
                             <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-6"></div>
                             <h3 class="text-2xl font-bold text-gray-900">Waiting for Driver...</h3>
-                            <p class="text-gray-500 font-medium mt-2">Driver has been notified.</p>
+                            <p class="text-gray-500 font-medium mt-2 mb-8">Driver has been notified.</p>
+                            <button onclick="socket.emit('cancelRideByStudent')" class="w-full border-2 border-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-50 transition">Cancel Request</button>
                         </div>
                     `;
-                } else if (data.ride.status === 'accepted') {
+                } else if (data.ride.status === 'accepted' || data.ride.status === 'in_progress') {
+                    
+                    const isAccepted = data.ride.status === 'accepted';
+                    
+                    // GEOFENCE ALERT LOGIC
+                    const geofenceAlert = (data.ride.geofenceSafe === false) ? 
+                        `<div class="bg-red-500 text-white p-3 rounded-xl text-xs font-bold text-center mb-6 animate-bounce shadow-lg shadow-red-500/40">⚠️ GEOFENCE ALERT: Vehicle has left the expected Campus Route! Admin notified.</div>` : '';
+
+                    const isDanger = data.ride.geofenceSafe === false;
+                    const etaValue = isAccepted ? data.ride.etaToPickup : data.ride.etaToDestination;
+                    const etaLabel = isAccepted ? "ETA To Pickup" : "ETA To Dropoff";
+                    const mainHeading = isAccepted ? "Driver is arriving soon" : "Ride in Progress";
+                    const subHeading = isAccepted ? `Driver is heading to ${data.ride.pickup}` : "You are heading to your destination.";
+
                     statusSec.innerHTML = `
                         <div class="w-full h-full flex flex-col justify-between">
-                            <div class="text-center mb-6">
-                                <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>
-                                <h3 class="text-2xl font-bold text-gray-900">Driver En Route</h3>
+                            ${geofenceAlert}
+
+                            <!-- LIVE MAP VIEW -->
+                            <div class="w-full h-48 bg-gray-200 map-bg rounded-2xl relative border-4 ${isDanger ? 'border-red-500' : 'border-blue-100'} overflow-hidden mb-4 shadow-sm">
+                                <div class="absolute inset-0 bg-blue-900/20"></div>
+                                <div class="absolute car-marker bg-white p-1.5 rounded-full shadow-lg border-2 ${isDanger ? 'border-red-500' : 'border-blue-600'} z-10 flex items-center justify-center">
+                                    <div class="w-2.5 h-2.5 ${isDanger ? 'bg-red-500' : 'bg-blue-600'} rounded-full animate-ping absolute"></div>
+                                    <svg class="w-5 h-5 ${isDanger ? 'text-red-600' : 'text-blue-600'} relative z-10" fill="currentColor" viewBox="0 0 20 20"><path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" /><path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7c-1.276 0-2.498.418-3.486 1.157A2.002 2.002 0 0010 10v4a1 1 0 001 1h.05a2.5 2.5 0 014.9 0H17a1 1 0 001-1v-5h-1c-.552 0-1-.448-1-1V7h-2z" /></svg>
+                                </div>
                             </div>
-                            <button onclick="openComplaint('${data.ride.driverId}')" class="mt-auto w-full border-2 border-red-100 text-red-500 font-bold py-3 rounded-xl hover:bg-red-50 transition">Report an Issue with Driver</button>
+                            
+                            <div class="flex items-center justify-between bg-gray-50 p-4 rounded-2xl border border-gray-200 mb-6">
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900">${mainHeading}</h3>
+                                    <p class="text-xs font-medium text-gray-500 mt-1">${subHeading}</p>
+                                </div>
+                                <div class="text-center bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
+                                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${etaLabel}</p>
+                                    <p class="text-xl font-extrabold ${isAccepted ? 'text-blue-600' : 'text-green-600'}">${etaValue}m</p>
+                                </div>
+                            </div>
+                            
+                            <!-- GEOFENCE TRIGGER FOR STUDENT -->
+                            <button onclick="socket.emit('triggerGeofenceBreach')" class="w-full bg-red-50 border border-red-100 text-red-600 font-bold py-3 rounded-xl hover:bg-red-100 transition text-sm mb-3">🚨 Simulate Geofence Deviation</button>
+                            
+                            <div class="grid grid-cols-2 gap-3 mt-auto">
+                                <button onclick="socket.emit('cancelRideByStudent')" class="w-full border-2 border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition text-sm">Cancel Ride</button>
+                                <button onclick="openComplaint('${data.ride.driverId}')" class="w-full bg-orange-50 border border-orange-100 text-orange-600 font-bold py-3 rounded-xl hover:bg-orange-100 transition text-sm">Report Issue</button>
+                            </div>
                         </div>
                     `;
                 }
             } else if (!data.ride || (data.ride && data.ride.status === 'completed')) {
                 document.getElementById('bookingSection').classList.remove('hidden');
-                statusSec.innerHTML = `<div class="text-center text-gray-400"><p class="font-bold">Select locations to see drivers.</p></div>`;
+                statusSec.innerHTML = `<div class="text-center text-gray-400"><svg class="w-16 h-16 mx-auto mb-4 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg><p class="font-bold">Select your locations to see drivers.</p></div>`;
             }
         });
 
@@ -168,7 +194,7 @@
             if (availableDrivers.length === 0) {
                 statusSec.innerHTML = `<div class="text-center text-gray-500 font-bold">No verified drivers online.</div>`;
             } else {
-                statusSec.innerHTML = `<div class="w-full"><h3 class="font-bold text-lg mb-4">Available Drivers</h3><div class="space-y-3">` + availableDrivers.map(drv => `
+                statusSec.innerHTML = `<div class="w-full flex flex-col h-full"><h3 class="font-bold text-lg mb-4">Available Drivers</h3><div class="space-y-3 flex-grow overflow-y-auto pr-2">` + availableDrivers.map(drv => `
                     <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">${drv.name.charAt(0)}</div>
@@ -179,34 +205,25 @@
                         </div>
                         <button onclick="confirmRide('${drv.id}')" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-blue-700">Select</button>
                     </div>
-                `).join('') + `</div></div>`;
+                `).join('') + `</div>
+                <button onclick="cancelSearch()" class="w-full mt-6 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-200 transition">Cancel Search</button>
+                </div>`;
             }
         }
 
+        function cancelSearch() { document.getElementById('statusSection').innerHTML = `<div class="text-center text-gray-400"><svg class="w-16 h-16 mx-auto mb-4 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg><p class="font-bold">Select your locations to see drivers.</p></div>`; }
         function confirmRide(driverId) {
             const p = document.getElementById('pickup').value; const d = document.getElementById('dropoff').value;
             const time = document.getElementById('scheduleToggle').checked ? document.getElementById('scheduleTime').value : "Now";
             socket.emit('bookRide', { passenger: userData.name, passengerId: userData.id, pickup: p, dropoff: d, scheduledTime: time, driverId: driverId });
         }
-
-        function openComplaint(driverId) {
-            document.getElementById('complaintDriverId').value = driverId;
-            document.getElementById('complaintModal').classList.remove('hidden'); document.getElementById('complaintModal').classList.add('flex');
-        }
-
-        function closeComplaint() {
-            document.getElementById('complaintModal').classList.add('hidden'); document.getElementById('complaintModal').classList.remove('flex');
-        }
-
+        function openComplaint(driverId) { document.getElementById('complaintDriverId').value = driverId; document.getElementById('complaintModal').classList.remove('hidden'); document.getElementById('complaintModal').classList.add('flex'); }
+        function closeComplaint() { document.getElementById('complaintModal').classList.add('hidden'); document.getElementById('complaintModal').classList.remove('flex'); }
         function submitComplaint() {
-            const text = document.getElementById('complaintText').value;
-            const driverId = document.getElementById('complaintDriverId').value;
+            const text = document.getElementById('complaintText').value; const driverId = document.getElementById('complaintDriverId').value;
             if(!text) return alert("Please enter complaint details.");
-            
             socket.emit('submitComplaint', { studentName: userData.name, studentId: userData.id, driverId: driverId, text: text, time: new Date().toISOString() });
-            alert("Complaint submitted to Admin successfully.");
-            closeComplaint();
-            document.getElementById('complaintText').value = '';
+            alert("Complaint submitted successfully."); closeComplaint(); document.getElementById('complaintText').value = '';
         }
     </script>
 </body>
