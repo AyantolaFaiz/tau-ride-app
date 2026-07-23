@@ -14,7 +14,6 @@
     <header class="fixed top-0 w-full z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
         <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <!-- NEW LOGO INSERTED HERE -->
                 <img src="tau-logo.png" alt="TAU Logo" class="w-12 h-12 object-contain bg-white rounded-full shadow-sm p-0.5">
                 <div>
                     <h1 class="font-bold text-lg leading-tight tracking-tight text-blue-900">TAU RIDE</h1>
@@ -25,17 +24,18 @@
                 <button onclick="openAuthModal('login')" class="px-6 py-2 text-blue-600 font-bold hover:bg-blue-50 rounded-xl transition">Login</button>
                 <button onclick="openAuthModal('signup')" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition">Sign Up</button>
             </div>
-            <button class="md:hidden p-2 text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+            <button class="md:hidden p-2 text-gray-600" onclick="openAuthModal('signup')"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
         </div>
     </header>
 
     <!-- Full Screen Hero Section -->
-    <main class="flex-grow pt-20 flex flex-col relative">
-        <div class="relative w-full h-[80vh] flex items-center justify-center">
+    <main class="flex-grow pt-16 flex flex-col relative">
+        <div class="relative w-full flex-grow flex items-center justify-center min-h-[80vh]">
+            <!-- THE IMAGE IS HERE -->
             <img src="tau-gate.png" alt="TAU Gate" class="absolute inset-0 w-full h-full object-cover object-center" />
             <div class="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/60 to-gray-900/90"></div>
             
-            <div class="relative z-10 text-center px-4 max-w-3xl mx-auto">
+            <div class="relative z-10 text-center px-4 max-w-3xl mx-auto mt-10">
                 <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 mb-6 backdrop-blur-md">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                     <span class="text-xs text-white font-bold tracking-wide uppercase">Safe & Reliable</span>
@@ -104,7 +104,6 @@
                     </div>
 
                     <button type="button" onclick="submitForm()" id="actionBtn" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-[15px] shadow-lg hover:bg-blue-700 active:scale-95 transition-all mt-4">Create Account</button>
-                    <p id="errorMsg" class="text-red-500 text-xs mt-3 text-center hidden font-bold bg-red-50 p-2 rounded border border-red-100"></p>
                 </form>
             </div>
         </div>
@@ -128,7 +127,6 @@
         function switchTab(type) {
             currentMode = type;
             const loginTab = document.getElementById('loginTab'); const signupTab = document.getElementById('signupTab');
-            const errorMsg = document.getElementById('errorMsg'); errorMsg.classList.add('hidden');
             const userIdInput = document.getElementById('userId'); const userIdLabel = document.getElementById('userIdLabel');
 
             if(type === 'admin') {
@@ -143,7 +141,7 @@
             } else if(type === 'signup') {
                 document.getElementById('tabsContainer').classList.remove('hidden');
                 signupTab.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600 transition-all";
-                loginTab.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 transition-all";
+                loginTab.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 transition-all hover:bg-gray-200";
                 document.getElementById('nameField').classList.remove('hidden');
                 document.getElementById('roleField').classList.remove('hidden');
                 
@@ -154,7 +152,7 @@
             } else if (type === 'login') {
                 document.getElementById('tabsContainer').classList.remove('hidden');
                 loginTab.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600 transition-all";
-                signupTab.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 transition-all";
+                signupTab.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 transition-all hover:bg-gray-200";
                 document.getElementById('nameField').classList.add('hidden');
                 document.getElementById('roleField').classList.remove('hidden');
                 document.getElementById('driverFields').classList.add('hidden');
@@ -180,23 +178,27 @@
             const name = document.getElementById('fullName').value;
             const model = document.getElementById('vehicleModel').value;
             const plate = document.getElementById('plateNumber').value;
-            const errorMsg = document.getElementById('errorMsg');
 
+            // Proper Alerts for Validation
             if(!id || !pass || (currentMode === 'signup' && !name)) {
-                errorMsg.innerText = "Please fill all required fields."; errorMsg.classList.remove('hidden'); return;
+                return alert("ERROR: Please fill all required fields.");
+            }
+
+            if (currentMode !== 'admin' && !id.toLowerCase().endsWith('@tau.edu.ng')) {
+                return alert("ERROR: You must use a valid @tau.edu.ng email address to register or login.");
             }
 
             if(currentMode === 'signup') {
                 if(role === 'driver' && (!model || !plate)) {
-                    errorMsg.innerText = "Drivers must provide vehicle details."; errorMsg.classList.remove('hidden'); return;
+                    return alert("ERROR: Drivers must provide Vehicle Model and Plate Number.");
                 }
                 socket.emit('registerUser', { id: id, password: pass, name: name, role: role, vehicleModel: model, plateNumber: plate }, (res) => {
                     if(res.success) {
                         localStorage.setItem('campusRideUser', JSON.stringify(res.user));
                         if(role === 'driver') alert("Registration successful! An admin must approve your account before you can log in.");
-                        else window.location.href = role + '.html';
+                        window.location.href = role + '.html';
                     } else {
-                        errorMsg.innerText = res.message; errorMsg.classList.remove('hidden');
+                        alert("ERROR: " + res.message);
                     }
                 });
             } else {
@@ -205,7 +207,7 @@
                         localStorage.setItem('campusRideUser', JSON.stringify(res.user));
                         window.location.href = role + '.html';
                     } else {
-                        errorMsg.innerText = res.message; errorMsg.classList.remove('hidden');
+                        alert("ERROR: " + res.message);
                     }
                 });
             }
