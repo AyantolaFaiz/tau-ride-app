@@ -8,6 +8,7 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
+// --- SYSTEM DATABASE (Memory) ---
 let registeredUsers = []; 
 let onlineDrivers = {};
 let currentRide = null; 
@@ -51,9 +52,15 @@ io.on('connection', (socket) => {
         }
     });
 
+    // --- FIX: Sync Approval with Online Drivers ---
     socket.on('approveDriver', (driverId) => {
         let d = registeredUsers.find(u => u.id === driverId);
         if(d) d.approved = true;
+        
+        // Update the driver if they are already online
+        for(let key in onlineDrivers) {
+            if(onlineDrivers[key].id === driverId) onlineDrivers[key].approved = true;
+        }
         sendUpdate();
     });
 
@@ -71,7 +78,7 @@ io.on('connection', (socket) => {
 
     socket.on('acceptRide', () => {
         if (currentRide) {
-            currentRide.status = 'accepted'; // Driver is on the way to pickup
+            currentRide.status = 'accepted';
             currentRide.etaToPickup = Math.floor(Math.random() * 4) + 2; 
             currentRide.etaToDestination = Math.floor(Math.random() * 8) + 5; 
             currentRide.geofenceSafe = true; 
@@ -79,18 +86,15 @@ io.on('connection', (socket) => {
         sendUpdate();
     });
 
-    // NEW: START RIDE FEATURE
     socket.on('startRide', () => {
-        if (currentRide) {
-            currentRide.status = 'in_progress'; // Driver picked up student
-        }
+        if (currentRide) currentRide.status = 'in_progress';
         sendUpdate();
     });
 
     socket.on('cancelRideByStudent', () => {
         currentRide = null;
         sendUpdate();
-        io.emit('rideCancelled', 'The rider cancelled the ride due to an emergency or delay.');
+        io.emit('rideCancelled', 'The rider cancelled the ride.');
     });
 
     socket.on('triggerGeofenceBreach', () => {
@@ -130,7 +134,12 @@ io.on('connection', (socket) => {
         sendUpdate();
     });
 
+    // --- FIX: Verify Approval when Driver opens app ---
     socket.on('driverOnline', (driverProfile) => {
+        let realProfile = registeredUsers.find(u => u.id === driverProfile.id);
+        if (realProfile) {
+            driverProfile.approved = realProfile.approved; // Force approval check
+        }
         onlineDrivers[socket.id] = { ...driverProfile, socketId: socket.id };
         sendUpdate();
     });
@@ -141,4 +150,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => console.log('✅ Advanced GPS Server running on http://localhost:3000'));
+server.listen(3000, () => console.log('✅ Advanced GPS Server running'));
